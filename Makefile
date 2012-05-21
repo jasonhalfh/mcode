@@ -25,7 +25,7 @@ main.o: main.c
 
 
 install: 
-	cp parse ../
+	cp -f parse ../ 
 clean: 
 	rm -f *.o
 	rm -f parse

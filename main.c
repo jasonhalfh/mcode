@@ -79,9 +79,38 @@ void area(char *dir)
 	       a.min_x, a.max_x, a.min_y, a.max_y);
 }
 
-void density(char *inf, char *of, int gsize)
+void density(char *indir, char *outdir, int gsize)
 {	
-	calc_density(inf, of, gsize);
+	DIR *dp;
+	struct dirent *file;
+	char infile[256], outfile[256];
+	FILE *fp;
+	fp = fopen("all_in_one", "w");
+	
+	dp = opendir(indir);
+	if (!dp) {
+		printf("open dir error in density_in_area\n");  
+	}
+	
+	while(file = readdir(dp)) {  
+		if(file->d_type != 8) { // not a normal file 
+			continue;         
+		}   
+		memset(infile, 0, sizeof(infile));    
+		memset(outfile, 0, sizeof(outfile)); 
+		strcat(infile, indir);       
+		strcat(infile, file->d_name);    
+		strcat(outfile, outdir); 
+		int t = atoi(file->d_name);
+		int hour = t/3600;
+		int sec = t%3600;
+		sprintf(outfile, "%s-%d-%d", outfile, hour, sec);
+		//strcat(outfile, file->d_name);
+		printf("%s\n", outfile);
+		calc_density(infile, outfile, gsize, fp);
+	}
+	closedir(dp);
+	fclose(fp);
 }
 
 int main(int argc, char *argv[])
@@ -114,10 +143,10 @@ int main(int argc, char *argv[])
 		break;
 		
 	case CAB_DENSITY:
-		in_file = *(argv + 2);
-		out_file = *(argv + 3);
+		in_dir = *(argv + 2);
+		out_dir = *(argv + 3);
 		val = atoi(*(argv + 4));
-		density(in_file, out_file, val);
+		density(in_dir, out_dir, val);
 		break;
 
 	case CONFIG_INFO:

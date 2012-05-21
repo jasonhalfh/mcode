@@ -142,10 +142,10 @@ void calc_area(struct area *a, char *dir)
 }
 
 
-void calc_density(char *inf, char *of, int gsize)
+void calc_density(char *inf, char *of, int gsize, FILE *allfp)
 {
 	FILE *fp, *outfp;
-	struct grid_map *map;
+	struct grid_map *map, *allmap;
 	int time, nid;
 	double x, y;
 	int i,j, flag;
@@ -158,6 +158,13 @@ void calc_density(char *inf, char *of, int gsize)
 		return;
 	}
 	memset(map, 0, ITEMS_PER_FILE * sizeof(struct grid_map));
+	
+	allmap = (struct grid_map*)malloc(ITEMS_PER_FILE * sizeof(struct grid_map));
+	if (allmap == NULL) {
+		printf("allmap malloc error\n");
+		return;
+	}
+	memset(allmap, 0, ITEMS_PER_FILE * sizeof(struct grid_map));	
 	
 	outfp = fopen(of, "w");
 	fp = fopen(inf, "r");
@@ -184,7 +191,7 @@ void calc_density(char *inf, char *of, int gsize)
 		*/
 		gx = x / gsize;
 		gy = y / gsize;
-		printf("gx %d\t gy %d\n", gx, gy);
+		//printf("gx %d\t gy %d\n", gx, gy);
 		
 		flag = 0;
 		j = 0;
@@ -205,7 +212,36 @@ void calc_density(char *inf, char *of, int gsize)
 			map[i].weight ++;
 			i ++;
 		}		
-		//printf("\nmap item %d\n", i);
+		//printf("\nmap item %d\n", i);		a		
+	}
+	fclose(fp);
+	
+	fp = fopen(inf, "r");
+	if(fp == NULL || outfp == NULL) { 
+		printf("open file error int calc_density\n");  
+		return;
+	}    	
+	i = 0;
+	while (fscanf(fp, "%d\t%lf\t%lf\t%d\n", &time, &x, &y, &nid) != EOF) {	
+		flag = 0;
+		j = 0;
+		while (allmap[j].weight > 0 && j < ITEMS_PER_FILE * 60 * 24) {
+			//printf("j:%d\t", j);
+			if (allmap[j].gridx == gx && 
+			    allmap[j].gridy == gy) {
+				allmap[j].weight ++;
+				flag = 1;
+				break;
+			}				
+			j ++;
+		}
+		
+		if (flag == 0) {			
+			allmap[i].gridx = gx;
+			allmap[i].gridy = gy;
+			allmap[i].weight ++;
+			i ++;
+		}		
 		
 	}
 	
@@ -217,6 +253,14 @@ void calc_density(char *inf, char *of, int gsize)
 			map[i].gridx, map[i].gridy, map[i].weight);
 		i ++;
 	}
+	
+	i = 0;
+	while (allmap[i].weight > 0) {
+		fprintf(allfp, "%d\t%d\t%d\n", 
+			allmap[i].gridx, allmap[i].gridy, allmap[i].weight);
+		i ++;
+	}
+			
 	
 	fclose(outfp);
 	free(map);

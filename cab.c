@@ -106,7 +106,7 @@ void gps_nodes_distribution(char *indir,char *outdir, struct stand_items **items
 	DIR *dp;
 	struct dirent *file;
 	char ab_file[256];
-	
+	int i;
 	struct stand_items **heads = 
 		(struct stand_items**)malloc(total * sizeof(struct items*));
 	if (heads == NULL) {
@@ -117,17 +117,17 @@ void gps_nodes_distribution(char *indir,char *outdir, struct stand_items **items
 	
 
 	struct statistic_info *all =
-		(struct statistic_info*)malloc(0xfff * sizeof(struct statistic_info));
+		(struct statistic_info*)malloc(10000 * sizeof(struct statistic_info));
 	if (all == NULL) {
 		printf("malloc failed\n");
 		return ;
 	} 
-	memset(all, 0, 0xfff * sizeof(struct statistic_info));
+	memset(all, 0, 10000 * sizeof(struct statistic_info));
 	
 	int j = 0;
 	while(j < total) {
 		*(heads + j) = *(p + j);
-		(all + j)->hours_id = j;
+		(all + j)->time = j;
 		j ++;
 	}
 
@@ -191,7 +191,27 @@ void gps_nodes_distribution(char *indir,char *outdir, struct stand_items **items
 		j ++;
 	}
 	/* get a real node num by time */
-	write_file_by_sinfo("statistic_reall.info", all, 0xfff);
+	
+	write_file_by_sinfo("statistic_reall.info", all, total);
+	i = 0;
+	j = 0;
+	int stime, etime;
+	while (i < 10000 && all[i].cnt > 0) {
+		while (all[i].cnt > 300) {
+			if (j == 0)
+				stime = all[i].time;
+			j ++;
+			i ++;
+		}
+		etime = all[i].time;
+		if (j > 1 * 60) {
+			printf("%d -> %d\n", stime/60, etime/60);
+			j = 0;
+		} else {
+			j = 0;
+		}
+		i ++;
+	}
 
 	free(all);
 	free(heads);

@@ -171,8 +171,8 @@ void write_file_by_sinfo(char *file, struct statistic_info *sinfo, int max_num)
         }
 
         int i = 0;
-        while(i < max_num){
-                fprintf(fp,"%d\t%d\n",p->hours_id, p->cnt);
+        while(i < max_num ){
+                fprintf(fp,"%d\t%d\n",p->time, p->cnt);
                 p ++;
                 i ++;
         }

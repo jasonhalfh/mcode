@@ -36,7 +36,7 @@ struct grid_map {
  * statistics info 
  */
 struct statistic_info {
-	int hours_id;
+	int time;
 	int cnt;
 }statistic;
 
